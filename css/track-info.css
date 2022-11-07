@@ -24,4 +24,8 @@
     .track-info__artist {
         font-size: 12px;
     }
+
+    .track-info_mobile-center {
+        text-align: center;
+    }
 }
