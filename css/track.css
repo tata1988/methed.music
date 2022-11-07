@@ -13,6 +13,11 @@
     transition-property: background-color 0.3s ease-in-out;
 }
 
+.track__poster {
+    width: 180px;
+    height: 180px;
+}
+
 .track__img-wrap {
     position: relative;
     border-radius: 12px 12px 0px 0px;
@@ -76,4 +81,22 @@
 .track_active:hover .track__img-wrap::after {
     background-color: #fff;
 
+}
+
+
+@media (max-width: 560px) {
+    .track {
+        padding: 3px;
+        border-width: 1px;
+        border-radius: 14px;
+    }
+
+    .track__info {
+        padding: 8px;
+    }
+
+    .track__poster {
+        width: 140px;
+        height: 140px;
+    }
 }

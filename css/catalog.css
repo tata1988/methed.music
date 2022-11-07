@@ -12,8 +12,24 @@
     color: #fff;
     grid-column: 1 / -1;
     display: flex;
+    justify-self: end;
     margin-left: auto;
     align-items: center;
     gap: 8px;
     font-weight: 600;
+    padding: 16px 0;
+}
+
+@media (max-width: 560px) {
+    .catalog__container {
+        padding: 0 11px;
+        grid-template-columns: repeat(auto-fill, 148px);
+        gap: 2px;
+    }
+
+    .catalog__btn-add {
+        padding: 12px 0;
+        font-size: 14px;
+        gap: 4px;
+    }
 }
