@@ -48,6 +48,10 @@
     background-image: url('../image/player/pause.svg');
 }
 
+.player__icon_play {
+    background-image: url('../image/player/play.svg');
+}
+
 .player__icon_next {
     background-image: url('../image/player/next.svg');
 }
