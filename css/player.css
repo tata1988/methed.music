@@ -152,7 +152,7 @@
     border-color: #000;
 }
 
-.player__icon_mute-on {
+.player__icon_mute {
     background-image: url('../image/player/volume-on.svg');
     background-repeat: no-repeat;
     background-position: center;
