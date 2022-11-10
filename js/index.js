@@ -95,6 +95,9 @@ const prevBtn = document.querySelector('.player__controller-prev');
 const nextBtn = document.querySelector('.player__controller-next');
 const likeBtn = document.querySelector('.player__controller-like');
 const muteBtn = document.querySelector('.player__controller-mute');
+const playerProgressInput = document.querySelector('.player__progress-input');
+const playerTimePassed = document.querySelector('.player__time-passed');
+const playerTimeTotal = document.querySelector('.player__time-total');
 
 
 const catalogAddBtn = document.createElement('button');
@@ -121,17 +124,14 @@ const pausePlayer = () => {
     }
 }
 
-
 const playMusic = (e) => {
     e.preventDefault();
     const trackActive = e.currentTarget;
-
     if (trackActive.classList.contains('track_active')) {
         pausePlayer();
         return;
     }
     //получаем id 
-
     let i = 0;
     const id = trackActive.dataset.idTrack;
     const track = dataMusic.find((item, index) => {
@@ -150,10 +150,12 @@ const playMusic = (e) => {
     nextBtn.dataset.idTrack = dataMusic[nextTrack].id;
 
     for (let i = 0; i < tracksCard.length; i++) {
-        tracksCard[i].classList.remove('track_active');
+        if (id === tracksCard[i].dataset.idTrack) {
+            tracksCard[i].classList.add('track_active');
+        } else {
+            tracksCard[i].classList.remove('track_active');
+        }
     }
-
-    trackActive.classList.add('track_active');
 
 };
 
@@ -168,6 +170,7 @@ pauseBtn.addEventListener('click', pausePlayer);
 stopBtn.addEventListener('click', () => {
     audio.src = '';
     player.classList.remove('player_active');
+    document.querySelector('.track_active').classList.remove('track_active');
 });
 
 const createCard = (data) => {
@@ -213,6 +216,29 @@ const checkCount = (i = 1) => {
     }
 };
 
+//ф-я для обновления данных в момент когда произошло изменение текущей позиции воспроизведения на новое значение
+const updateTime = () => {
+    //получение текущего времени в мс
+    const currentTime = audio.currentTime;
+    //получение общего времени в мс
+    const duration = audio.duration;
+    //получение текущего времени, playerProgressInput.max - max знач-е указано в input 
+    const progress = (currentTime / duration) * playerProgressInput.max;
+    //знач-ю input присвоить текущее время в %
+    playerProgressInput.value = progress ? progress : 0;
+
+    //вывод тек времени (сколько минут прошло)
+    const minutesPassed = Math.floor(currentTime / 60) || '0';
+    const secondsPassed = Math.floor(currentTime % 60) || '00';
+
+    //вывод общего времени 
+    const minuteDuration = Math.floor(duration / 60) || '0';
+    const secondsDuration = Math.floor(duration % 60) || '00';
+
+    playerTimePassed.textContent = `${minutesPassed}:${secondsPassed < 10 ? '0' + secondsPassed : secondsPassed}`;
+    playerTimeTotal.textContent = `${minuteDuration}:${secondsDuration < 10 ? '0' + secondsDuration : secondsDuration}`;
+}
+
 const init = () => {
     renderCatalog(dataMusic);
     checkCount();
@@ -224,8 +250,19 @@ const init = () => {
         });
     });
 
-    prevBtn.addEventListener('click', playMusic)
-    nextBtn.addEventListener('click', playMusic)
+    prevBtn.addEventListener('click', playMusic);
+    nextBtn.addEventListener('click', playMusic);
+
+    //timeupdate-событие в момент, когда произошло изменение текущей позиции воспроизведения на новое значение
+    audio.addEventListener('timeupdate', updateTime);
+
+    //событие при перемещении бегунка
+    playerProgressInput.addEventListener('change', () => {
+        //тек значение бегунка 
+        const progress = playerProgressInput.value;
+        //получение тек времени в мс, playerProgressInput.max - max знач-е указано в input
+        audio.currentTime = (progress / playerProgressInput.max) * audio.duration;
+    })
 }
 
 init();
