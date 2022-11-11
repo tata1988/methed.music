@@ -60,6 +60,10 @@
     background-image: url('../image/player/like-o.svg');
 }
 
+.player__icon_like_active {
+    filter: drop-shadow(0 0 2px tomato);
+}
+
 .player__progress-wrap {
     display: flex;
     align-items: center;

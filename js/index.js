@@ -85,9 +85,17 @@ const dataMusic = [
     },
 ];
 
+let playlist = [];
+
+const favoriteList = localStorage.getItem('favorite')
+    ? JSON.parse(localStorage.getItem('favorite'))
+    : [];
+
 const audio = new Audio();
+const headerLogo = document.querySelector('.header__logo');
 const catalogContainer = document.querySelector('.catalog__container');
 const tracksCard = document.getElementsByClassName('track');
+const favoriteBtn = document.querySelector('.header__favorite-btn');
 const player = document.querySelector('.player');
 const pauseBtn = document.querySelector('.player__controller-pause');
 const stopBtn = document.querySelector('.player__controller-stop');
@@ -98,7 +106,7 @@ const muteBtn = document.querySelector('.player__controller-mute');
 const playerProgressInput = document.querySelector('.player__progress-input');
 const playerTimePassed = document.querySelector('.player__time-passed');
 const playerTimeTotal = document.querySelector('.player__time-total');
-
+const playerVolumeInput = document.querySelector('.player__volume-input');
 
 const catalogAddBtn = document.createElement('button');
 catalogAddBtn.classList.add('catalog__btn-add');
@@ -134,7 +142,15 @@ const playMusic = (e) => {
     //получаем id 
     let i = 0;
     const id = trackActive.dataset.idTrack;
-    const track = dataMusic.find((item, index) => {
+
+    const index = favoriteList.indexOf(id);
+    if (index !== -1) {
+        likeBtn.classList.add('player__icon_like_active');
+    } else {
+        likeBtn.classList.remove('player__icon_like_active');
+    }
+
+    const track = playlist.find((item, index) => {
         i = index;
         return id === item.id;
     });
@@ -144,10 +160,11 @@ const playMusic = (e) => {
     pauseBtn.classList.remove('player__icon_play');
     player.classList.add('player_active');
 
-    const prevTrack = i === 0 ? dataMusic.length - 1 : i - 1;
-    const nextTrack = i + 1 === dataMusic.length ? 0 : i + 1;
-    prevBtn.dataset.idTrack = dataMusic[prevTrack].id;
-    nextBtn.dataset.idTrack = dataMusic[nextTrack].id;
+    const prevTrack = i === 0 ? playlist.length - 1 : i - 1;
+    const nextTrack = i + 1 === playlist.length ? 0 : i + 1;
+    prevBtn.dataset.idTrack = playlist[prevTrack].id;
+    nextBtn.dataset.idTrack = playlist[nextTrack].id;
+    likeBtn.dataset.idTrack = id;
 
     for (let i = 0; i < tracksCard.length; i++) {
         if (id === tracksCard[i].dataset.idTrack) {
@@ -199,6 +216,7 @@ const createCard = (data) => {
 };
 
 const renderCatalog = (dataList) => {
+    playlist = [...dataList];
     catalogContainer.textContent = '';
     const listCards = dataList.map(createCard);
     catalogContainer.append(...listCards);
@@ -240,6 +258,9 @@ const updateTime = () => {
 }
 
 const init = () => {
+    audio.volume = localStorage.getItem('volume') || 1;
+    playerVolumeInput.value = audio.volume * 100;
+
     renderCatalog(dataMusic);
     checkCount();
     // при клике на "увидеть все" появляются оставшиеся карточки
@@ -253,6 +274,12 @@ const init = () => {
     prevBtn.addEventListener('click', playMusic);
     nextBtn.addEventListener('click', playMusic);
 
+    //аудио доходит до конца и вкл следующую песню
+    audio.addEventListener('ended', () => {
+        //создается свой Event по клику, как будто бы мы нажали на кнопку next
+        nextBtn.dispatchEvent(new Event('click', { bubbles: true }));
+    })
+
     //timeupdate-событие в момент, когда произошло изменение текущей позиции воспроизведения на новое значение
     audio.addEventListener('timeupdate', updateTime);
 
@@ -262,7 +289,55 @@ const init = () => {
         const progress = playerProgressInput.value;
         //получение тек времени в мс, playerProgressInput.max - max знач-е указано в input
         audio.currentTime = (progress / playerProgressInput.max) * audio.duration;
+    });
+
+    //при клике на кнопку сердечко  в хедер, сформируется фаворитный список песен, на к-ых стоит лайк 
+    favoriteBtn.addEventListener('click', () => {
+        //в data попадут лишь те данные, id которых хранится в localStorage
+        const data = dataMusic.filter((item) => favoriteList.includes(item.id));
+        renderCatalog(data);
+        checkCount();
     })
+
+    headerLogo.addEventListener('click', () => {
+        renderCatalog(dataMusic);
+        checkCount();
+    })
+
+    likeBtn.addEventListener('click', () => {
+        const index = favoriteList.indexOf(likeBtn.dataset.idTrack);
+        if (index === -1) {
+            favoriteList.push(likeBtn.dataset.idTrack);
+            likeBtn.classList.add('player__icon_like_active');
+        } else {
+            favoriteList.splice(index, 1);
+            likeBtn.classList.remove('player__icon_like_active');
+        }
+
+        localStorage.setItem('favorite', JSON.stringify(favoriteList));
+    })
+
+    //изменение звука, передвигая бегунок со звуком
+    playerVolumeInput.addEventListener('input', () => {
+        const value = playerVolumeInput.value;
+        audio.volume = value / 100;
+    })
+
+    //при клике убирается звук, меняется иконка, бегунок меняется и наоборот 
+    muteBtn.addEventListener('click', () => {
+        if (audio.volume) {
+            localStorage.setItem('volume', audio.volume);
+            audio.volume = 0;
+            muteBtn.classList.add('player__icon_mute-off');
+            playerVolumeInput.value = 0;
+        } else {
+            audio.volume = localStorage.getItem('volume');
+            muteBtn.classList.remove('player__icon_mute-off');
+            playerVolumeInput.value = audio.volume * 100;
+        }
+    })
+
+
 }
 
 init();
